@@ -17,14 +17,69 @@
 package com.oltpbenchmark.benchmarks.tpcc.procedures;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Random;
 
 import com.oltpbenchmark.api.Procedure;
+import com.oltpbenchmark.api.SQLStmt;
+import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.tpcc.TPCCWorker;
+import com.sun.xml.bind.v2.runtime.JAXBContextImpl;
+import org.apache.log4j.Logger;
 
 public abstract class TPCCProcedure extends Procedure {
+
+    private static final Logger LOG = Logger.getLogger(TPCCProcedure.class);
+
+    HashMap<String, Long> duration = new HashMap<String, Long>();
+    HashMap<String, Long> count = new HashMap<String, Long>();
+
+    private void increment(String s, long inc) {
+        if (duration.containsKey(s)) {
+            long d = duration.get(s);
+            long c = count.get(s);
+            duration.put(s, d+inc);
+            count.put(s, c+1);
+        }
+        else {
+            duration.put(s, inc);
+            count.put(s, 1l);
+        }
+    }
+
+    protected  ResultSet executeQuery(PreparedStatement stmt, SQLStmt s) throws SQLException {
+        long start = System.nanoTime();
+        ResultSet rs = stmt.executeQuery();
+        long end = System.nanoTime();
+        increment(s.getSQL(), end - start);
+        return rs;
+    }
+
+    protected int executeUpdate(PreparedStatement stmt, SQLStmt s) throws SQLException {
+        long start = System.nanoTime();
+        int r = stmt.executeUpdate();
+        long end = System.nanoTime();
+        increment(s.getSQL(), end - start);
+        return r;
+    }
+
+    protected void executeBatch(PreparedStatement stmt, SQLStmt s) throws SQLException {
+        long start = System.nanoTime();
+        stmt.executeBatch();
+        long end = System.nanoTime();
+        increment(s.getSQL(), end - start);
+        return;
+    }
+
+    public void dump_stats(int id) {
+        duration.forEach((k, v) -> {
+            long c = count.get(k);
+            LOG.info(String.format("[%03d:%20s:%50s] %020d %010d %010d", id, toString(), k.substring(0, Math.min(k.length(), 50)), v, c, v / c));
+        });
+    }
 
     public abstract ResultSet run(Connection conn, Random gen,
             int terminalWarehouseID, int numWarehouses,

@@ -21,6 +21,7 @@ import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -125,7 +126,15 @@ public abstract class Procedure {
         if (pStmt == null) {
             assert(this.stmt_name_xref.containsKey(stmt)) :
                 "Unexpected SQLStmt handle in " + this.getClass().getSimpleName() + "\n" + this.name_stmt_xref;
-            
+
+            // Hack if the target system is ESGYN DB, disable hash and merge join
+            if (this.dbType == DatabaseType.ESGYNDB) {
+                Statement s1 = conn.createStatement();
+                s1.execute("CQD MERGE_JOINS 'OFF'");
+                s1.execute("CQD HASH_JOINS 'OFF'");
+                s1.close();
+            }
+
             // HACK: If the target system is Postgres, wrap the PreparedStatement in a special
             //       one that fakes the getGeneratedKeys().
             if (is != null && this.dbType == DatabaseType.POSTGRES) {
@@ -140,6 +149,13 @@ public abstract class Procedure {
                 pStmt = conn.prepareStatement(stmt.getSQL());
             }
             this.prepardStatements.put(stmt, pStmt);
+
+            if (this.dbType == DatabaseType.ESGYNDB) {
+                Statement s1 = conn.createStatement();
+                s1.execute("CQD MERGE_JOINS RESET");
+                s1.execute("CQD HASH_JOINS RESET");
+                s1.close();
+            }
         }
         assert(pStmt != null) : "Unexpected null PreparedStatement for " + stmt;
         return (pStmt);

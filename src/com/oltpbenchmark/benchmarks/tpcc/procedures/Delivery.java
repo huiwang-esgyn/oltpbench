@@ -120,7 +120,7 @@ public class Delivery extends TPCCProcedure {
             delivGetOrderId.setInt(1, d_id);
             delivGetOrderId.setInt(2, w_id);
             if (trace) LOG.trace("delivGetOrderId START");
-            ResultSet rs = delivGetOrderId.executeQuery();
+            ResultSet rs = executeQuery(delivGetOrderId, delivGetOrderIdSQL);
             if (trace) LOG.trace("delivGetOrderId END");
             if (!rs.next()) {
                 // This district has no new orders
@@ -138,7 +138,7 @@ public class Delivery extends TPCCProcedure {
             delivDeleteNewOrder.setInt(2, d_id);
             delivDeleteNewOrder.setInt(3, w_id);
             if (trace) LOG.trace("delivDeleteNewOrder START");
-            int result = delivDeleteNewOrder.executeUpdate();
+            int result = executeUpdate(delivDeleteNewOrder, delivDeleteNewOrderSQL);
             if (trace) LOG.trace("delivDeleteNewOrder END");
             if (result != 1) {
                 // This code used to run in a loop in an attempt to make this work
@@ -156,7 +156,7 @@ public class Delivery extends TPCCProcedure {
             delivGetCustId.setInt(2, d_id);
             delivGetCustId.setInt(3, w_id);
             if (trace) LOG.trace("delivGetCustId START");
-            rs = delivGetCustId.executeQuery();
+            rs = executeQuery(delivGetCustId, delivGetCustIdSQL);
             if (trace) LOG.trace("delivGetCustId END");
 
             if (!rs.next()) {
@@ -173,7 +173,7 @@ public class Delivery extends TPCCProcedure {
             delivUpdateCarrierId.setInt(3, d_id);
             delivUpdateCarrierId.setInt(4, w_id);
             if (trace) LOG.trace("delivUpdateCarrierId START");
-            result = delivUpdateCarrierId.executeUpdate();
+            result = executeUpdate(delivUpdateCarrierId, delivUpdateCarrierIdSQL);
             if (trace) LOG.trace("delivUpdateCarrierId END");
 
             if (result != 1) {
@@ -188,7 +188,7 @@ public class Delivery extends TPCCProcedure {
             delivUpdateDeliveryDate.setInt(3, d_id);
             delivUpdateDeliveryDate.setInt(4, w_id);
             if (trace) LOG.trace("delivUpdateDeliveryDate START");
-            result = delivUpdateDeliveryDate.executeUpdate();
+            result = executeUpdate(delivUpdateDeliveryDate, delivUpdateDeliveryDateSQL);
             if (trace) LOG.trace("delivUpdateDeliveryDate END");
 
             if (result == 0){
@@ -203,7 +203,7 @@ public class Delivery extends TPCCProcedure {
             delivSumOrderAmount.setInt(2, d_id);
             delivSumOrderAmount.setInt(3, w_id);
             if (trace) LOG.trace("delivSumOrderAmount START");
-            rs = delivSumOrderAmount.executeQuery();
+            rs = executeQuery(delivSumOrderAmount, delivSumOrderAmountSQL);
             if (trace) LOG.trace("delivSumOrderAmount END");
 
             if (!rs.next()) {
@@ -221,7 +221,7 @@ public class Delivery extends TPCCProcedure {
             delivUpdateCustBalDelivCnt.setInt(idx++, d_id);
             delivUpdateCustBalDelivCnt.setInt(idx++, c_id);
             if (trace) LOG.trace("delivUpdateCustBalDelivCnt START");
-            result = delivUpdateCustBalDelivCnt.executeUpdate();
+            result = executeUpdate(delivUpdateCustBalDelivCnt, delivUpdateCustBalDelivCntSQL);
             if (trace) LOG.trace("delivUpdateCustBalDelivCnt END");
 
             if (result == 0) {

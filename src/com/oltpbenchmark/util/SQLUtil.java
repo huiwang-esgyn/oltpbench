@@ -352,7 +352,20 @@ public abstract class SQLUtil {
     public static String getInsertSQL(Table catalog_tbl, boolean escape_names, int...exclude_columns) {
         return getInsertSQL(catalog_tbl, false, escape_names, 1, exclude_columns);
     }
-    
+
+    /**
+     * Automatically generate the 'UPSERT' SQL string for this table
+     * with a batch size of 1
+     *
+     * @param catalog_tbl
+     * @param db_type
+     * @param exclude_columns
+     * @return
+     */
+    public static String getUpsertSQL(Table catalog_tbl, DatabaseType db_type, int... exclude_columns) {
+        return SQLUtil.getUpsertSQL(catalog_tbl, false, false, 1, exclude_columns);
+    }
+
     /**
      * Automatically generate the 'INSERT' SQL string for this table
      * with a batch size of 1
@@ -377,6 +390,59 @@ public abstract class SQLUtil {
     @Deprecated
     public static String getInsertSQL(Table catalog_tbl, boolean show_cols, int batchSize, int...exclude_columns) {
         return getInsertSQL(catalog_tbl, false, true, batchSize, exclude_columns);
+    }
+
+    /**
+     * Automatically generate the 'UPSERT' SQL string for this table
+     *
+     * @param catalog_tbl
+     * @param db_type
+     * @param batchSize
+     *            the number of sets of parameters
+     *            that should be included in the insert
+     * @param exclude_columns
+     * @return
+     */
+    public static String getUpsertSQL(Table catalog_tbl, boolean show_cols, boolean escape_names, int batchSize, int... exclude_columns) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("UPSERT INTO ")
+                .append(escape_names ? catalog_tbl.getEscapedName() : catalog_tbl.getName());
+
+        StringBuilder values = new StringBuilder();
+        boolean first;
+
+        // Column Names
+        // XXX: Disabled because of case issues with HSQLDB
+        if (show_cols) sb.append(" (");
+        first = true;
+
+        // These are the column offset that we want to exclude
+        Set<Integer> excluded = new HashSet<Integer>();
+        for (int ex : exclude_columns)
+            excluded.add(ex);
+
+        for (Column catalog_col : catalog_tbl.getColumns()) {
+            if (excluded.contains(catalog_col.getIndex())) continue;
+            if (first == false) {
+                if (show_cols) sb.append(", ");
+                values.append(", ");
+            }
+            if (show_cols) sb.append(escape_names ? catalog_col.getEscapedName() : catalog_col.getName());
+            values.append("?");
+            first = false;
+        } // FOR
+        if (show_cols) sb.append(")");
+
+        // Values
+        sb.append(" VALUES ");
+        first = true;
+        for (int i = 0; i < batchSize; i++) {
+            if (first == false) sb.append(", ");
+            sb.append("(").append(values.toString()).append(")");
+        } // FOR
+//    	sb.append(";");
+
+        return (sb.toString());
     }
 
     /**

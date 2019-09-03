@@ -177,12 +177,12 @@ public class Payment extends TPCCProcedure {
         payUpdateWhse.setInt(2, w_id);
         // MySQL reports deadlocks due to lock upgrades:
         // t1: read w_id = x; t2: update w_id = x; t1 update w_id = x
-        int result = payUpdateWhse.executeUpdate();
+        int result = executeUpdate(payUpdateWhse, payUpdateWhseSQL);
         if (result == 0)
             throw new RuntimeException("W_ID=" + w_id + " not found!");
 
         payGetWhse.setInt(1, w_id);
-        ResultSet rs = payGetWhse.executeQuery();
+        ResultSet rs = executeQuery(payGetWhse, payGetWhseSQL);
         if (!rs.next())
             throw new RuntimeException("W_ID=" + w_id + " not found!");
         w_street_1 = rs.getString("W_STREET_1");
@@ -197,13 +197,13 @@ public class Payment extends TPCCProcedure {
         payUpdateDist.setDouble(1, paymentAmount);
         payUpdateDist.setInt(2, w_id);
         payUpdateDist.setInt(3, districtID);
-        result = payUpdateDist.executeUpdate();
+        result = executeUpdate(payUpdateDist, payUpdateDistSQL);
         if (result == 0)
             throw new RuntimeException("D_ID=" + districtID + " D_W_ID=" + w_id + " not found!");
 
         payGetDist.setInt(1, w_id);
         payGetDist.setInt(2, districtID);
-        rs = payGetDist.executeQuery();
+        rs = executeQuery(payGetDist, payGetDistSQL);
         if (!rs.next())
             throw new RuntimeException("D_ID=" + districtID + " D_W_ID=" + w_id + " not found!");
         d_street_1 = rs.getString("D_STREET_1");
@@ -232,7 +232,7 @@ public class Payment extends TPCCProcedure {
             payGetCustCdata.setInt(1, customerWarehouseID);
             payGetCustCdata.setInt(2, customerDistrictID);
             payGetCustCdata.setInt(3, c.c_id);
-            rs = payGetCustCdata.executeQuery();
+            rs = executeQuery(payGetCustCdata, payGetCustCdataSQL);
             if (!rs.next())
                 throw new RuntimeException("C_ID=" + c.c_id + " C_W_ID=" + customerWarehouseID + " C_D_ID=" + customerDistrictID + " not found!");
             c_data = rs.getString("C_DATA");
@@ -250,7 +250,7 @@ public class Payment extends TPCCProcedure {
             payUpdateCustBalCdata.setInt(5, customerWarehouseID);
             payUpdateCustBalCdata.setInt(6, customerDistrictID);
             payUpdateCustBalCdata.setInt(7, c.c_id);
-            result = payUpdateCustBalCdata.executeUpdate();
+            result = executeUpdate(payUpdateCustBalCdata, payUpdateCustBalCdataSQL);
 
             if (result == 0)
                 throw new RuntimeException("Error in PYMNT Txn updating Customer C_ID=" + c.c_id + " C_W_ID=" + customerWarehouseID + " C_D_ID=" + customerDistrictID);
@@ -263,7 +263,7 @@ public class Payment extends TPCCProcedure {
             payUpdateCustBal.setInt(4, customerWarehouseID);
             payUpdateCustBal.setInt(5, customerDistrictID);
             payUpdateCustBal.setInt(6, c.c_id);
-            result = payUpdateCustBal.executeUpdate();
+            result = executeUpdate(payUpdateCustBal, payUpdateCustBalSQL);
 
             if (result == 0)
                 throw new RuntimeException("C_ID=" + c.c_id + " C_W_ID=" + customerWarehouseID + " C_D_ID=" + customerDistrictID + " not found!");
@@ -284,7 +284,7 @@ public class Payment extends TPCCProcedure {
         payInsertHist.setTimestamp(6, w.getBenchmarkModule().getTimestamp(System.currentTimeMillis()));
         payInsertHist.setDouble(7, paymentAmount);
         payInsertHist.setString(8, h_data);
-        payInsertHist.executeUpdate();
+        executeUpdate(payInsertHist, payInsertHistSQL);
 
         conn.commit();
 
@@ -377,7 +377,7 @@ public class Payment extends TPCCProcedure {
         payGetCust.setInt(1, c_w_id);
         payGetCust.setInt(2, c_d_id);
         payGetCust.setInt(3, c_id);
-        ResultSet rs = payGetCust.executeQuery();
+        ResultSet rs = executeQuery(payGetCust, payGetCustSQL);
         if (!rs.next()) {
             throw new RuntimeException("C_ID=" + c_id + " C_D_ID=" + c_d_id + " C_W_ID=" + c_w_id + " not found!");
         }
@@ -397,7 +397,7 @@ public class Payment extends TPCCProcedure {
         customerByName.setInt(1, c_w_id);
         customerByName.setInt(2, c_d_id);
         customerByName.setString(3, customerLastName);
-        ResultSet rs = customerByName.executeQuery();
+        ResultSet rs = executeQuery(customerByName, customerByNameSQL);
         if (LOG.isTraceEnabled()) LOG.trace("C_LAST=" + customerLastName + " C_D_ID=" + c_d_id + " C_W_ID=" + c_w_id);
 
         while (rs.next()) {

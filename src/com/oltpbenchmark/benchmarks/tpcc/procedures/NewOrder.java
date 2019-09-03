@@ -187,7 +187,7 @@ public class NewOrder extends TPCCProcedure {
 			stmtGetCust.setInt(1, w_id);
 			stmtGetCust.setInt(2, d_id);
 			stmtGetCust.setInt(3, c_id);
-			ResultSet rs = stmtGetCust.executeQuery();
+			ResultSet rs = executeQuery(stmtGetCust, stmtGetCustSQL);
 			if (!rs.next())
 				throw new RuntimeException("C_D_ID=" + d_id
 						+ " C_ID=" + c_id + " not found!");
@@ -198,7 +198,7 @@ public class NewOrder extends TPCCProcedure {
 			rs = null;
 
 			stmtGetWhse.setInt(1, w_id);
-			rs = stmtGetWhse.executeQuery();
+			rs = executeQuery(stmtGetWhse, stmtGetWhseSQL);
 			if (!rs.next())
 				throw new RuntimeException("W_ID=" + w_id + " not found!");
 			w_tax = rs.getFloat("W_TAX");
@@ -207,7 +207,7 @@ public class NewOrder extends TPCCProcedure {
 
 			stmtGetDist.setInt(1, w_id);
 			stmtGetDist.setInt(2, d_id);
-			rs = stmtGetDist.executeQuery();
+			rs = executeQuery(stmtGetDist, stmtGetDistSQL);
 			if (!rs.next()) {
 				throw new RuntimeException("D_ID=" + d_id + " D_W_ID=" + w_id
 						+ " not found!");
@@ -221,7 +221,7 @@ public class NewOrder extends TPCCProcedure {
 			//update next_order_id first, but it might doesn't matter
 			stmtUpdateDist.setInt(1, w_id);
 			stmtUpdateDist.setInt(2, d_id);
-			int result = stmtUpdateDist.executeUpdate();
+			int result = executeUpdate(stmtUpdateDist, stmtUpdateDistSQL);
 			if (result == 0)
 				throw new RuntimeException(
 						"Error!! Cannot update next_order_id on district for D_ID="
@@ -238,14 +238,14 @@ public class NewOrder extends TPCCProcedure {
 			stmtInsertOOrder.setTimestamp(5, w.getBenchmarkModule().getTimestamp(System.currentTimeMillis()));
 			stmtInsertOOrder.setInt(6, o_ol_cnt);
 			stmtInsertOOrder.setInt(7, o_all_local);
-			stmtInsertOOrder.executeUpdate();
+			executeUpdate(stmtInsertOOrder, stmtInsertOOrderSQL);
 			//insert ooder first]]
 			/*TODO: add error checking */
 
 			stmtInsertNewOrder.setInt(1, o_id);
 			stmtInsertNewOrder.setInt(2, d_id);
 			stmtInsertNewOrder.setInt(3, w_id);
-			stmtInsertNewOrder.executeUpdate();
+			executeUpdate(stmtInsertNewOrder, stmtInsertNewOrderSQL);
 			/*TODO: add error checking */
 
 
@@ -266,7 +266,7 @@ public class NewOrder extends TPCCProcedure {
 				ol_i_id = itemIDs[ol_number - 1];
 				ol_quantity = orderQuantities[ol_number - 1];
 				stmtGetItem.setInt(1, ol_i_id);
-				rs = stmtGetItem.executeQuery();
+				rs = executeQuery(stmtGetItem, stmtGetItemSQL);
 				if (!rs.next()) {
 					// This is (hopefully) an expected error: this is an
 					// expected new order rollback
@@ -290,7 +290,7 @@ public class NewOrder extends TPCCProcedure {
 
 				stmtGetStock.setInt(1, ol_i_id);
 				stmtGetStock.setInt(2, ol_supply_w_id);
-				rs = stmtGetStock.executeQuery();
+				rs = executeQuery(stmtGetStock, stmtGetStockSQL);
 				if (!rs.next())
 					throw new RuntimeException("I_ID=" + ol_i_id
 							+ " not found!");
@@ -388,8 +388,8 @@ public class NewOrder extends TPCCProcedure {
 
 			} // end-for
 
-			stmtInsertOrderLine.executeBatch();
-			stmtUpdateStock.executeBatch();
+			executeBatch(stmtInsertOrderLine, stmtInsertOrderLineSQL);
+			executeBatch(stmtUpdateStock, stmtUpdateStockSQL);
 
 			total_amount *= (1 + w_tax + d_tax) * (1 - c_discount);
 		} catch(UserAbortException userEx)

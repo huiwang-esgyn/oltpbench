@@ -26,8 +26,10 @@ package com.oltpbenchmark.benchmarks.tpcc;
  */
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Random;
 
+import com.oltpbenchmark.api.Procedure;
 import org.apache.log4j.Logger;
 
 import com.oltpbenchmark.api.Procedure.UserAbortException;
@@ -49,6 +51,9 @@ public class TPCCWorker extends Worker<TPCCBenchmark> {
 
 	private int numWarehouses;
 
+	private HashMap<String, Long> duration = new HashMap<String, Long>();
+	private HashMap<String, Long> count = new HashMap<String, Long>();
+
 	public TPCCWorker(TPCCBenchmark benchmarkModule, int id,
 			int terminalWarehouseID, int terminalDistrictLowerID,
 			int terminalDistrictUpperID, int numWarehouses)
@@ -64,13 +69,34 @@ public class TPCCWorker extends Worker<TPCCBenchmark> {
 		this.numWarehouses = numWarehouses;
 	}
 
+	@Override
+	public void tearDown(boolean error) {
+		if (duration != null) {
+			duration.forEach((k, v) -> {
+				long c = count.get(k);
+				LOG.info(String.format("[%03d:%20s] %020d %010d %010d", getId(), k, v, c, v / c));
+			});
+			duration = null;
+			count = null;
+			for (Procedure p : class_procedures.values()) {
+				if (p instanceof TPCCProcedure) {
+					((TPCCProcedure) p).dump_stats(getId());
+				}
+			}
+		}
+		super.tearDown(error);
+	}
+
 	/**
 	 * Executes a single TPCC transaction of type transactionType.
-	 */
+    */
 	@Override
     protected TransactionStatus executeWork(TransactionType nextTransaction) throws UserAbortException, SQLException {
+        long start = System.nanoTime();
+        String pname;
         try {
             TPCCProcedure proc = (TPCCProcedure) this.getProcedure(nextTransaction.getProcedureClass());
+            pname = proc.toString();
             proc.run(conn, gen, terminalWarehouseID, numWarehouses,
                     terminalDistrictLowerID, terminalDistrictUpperID, this);
         } catch (ClassCastException ex){
@@ -79,6 +105,17 @@ public class TPCCWorker extends Worker<TPCCBenchmark> {
         	throw new RuntimeException("Bad transaction type = "+ nextTransaction);
 	    }
         conn.commit();
+        long end = System.nanoTime();
+        if (duration.containsKey(pname)) {
+        	long d = duration.get(pname);
+        	duration.put(pname, d + (end - start));
+        	long c = count.get(pname);
+        	count.put(pname, c + 1l);
+		}
+        else {
+            duration.put(pname, end-start);
+            count.put(pname, 1l);
+		}
         return (TransactionStatus.SUCCESS);
 	}
 }

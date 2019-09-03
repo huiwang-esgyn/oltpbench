@@ -120,7 +120,7 @@ public class OrderStatus extends TPCCProcedure {
         ordStatGetNewestOrd.setInt(2, d_id);
         ordStatGetNewestOrd.setInt(3, c.c_id);
         if (trace) LOG.trace("ordStatGetNewestOrd START");
-        ResultSet rs = ordStatGetNewestOrd.executeQuery();
+        ResultSet rs = executeQuery(ordStatGetNewestOrd, ordStatGetNewestOrdSQL);
         if (trace) LOG.trace("ordStatGetNewestOrd END");
 
         if (!rs.next()) {
@@ -140,7 +140,7 @@ public class OrderStatus extends TPCCProcedure {
         ordStatGetOrderLines.setInt(2, d_id);
         ordStatGetOrderLines.setInt(3, w_id);
         if (trace) LOG.trace("ordStatGetOrderLines START");
-        rs = ordStatGetOrderLines.executeQuery();
+        rs = executeQuery(ordStatGetOrderLines, ordStatGetOrderLinesSQL);
         if (trace) LOG.trace("ordStatGetOrderLines END");
 
         while (rs.next()) {
@@ -231,7 +231,7 @@ public class OrderStatus extends TPCCProcedure {
         payGetCust.setInt(2, c_d_id);
         payGetCust.setInt(3, c_id);
         if (trace) LOG.trace("payGetCust START");
-        ResultSet rs = payGetCust.executeQuery();
+        ResultSet rs = executeQuery(payGetCust, payGetCustSQL);
         if (trace) LOG.trace("payGetCust END");
         if (!rs.next()) {
             String msg = String.format("Failed to get CUSTOMER [C_W_ID=%d, C_D_ID=%d, C_ID=%d]",
@@ -257,7 +257,7 @@ public class OrderStatus extends TPCCProcedure {
         customerByName.setInt(2, c_d_id);
         customerByName.setString(3, c_last);
         if (trace) LOG.trace("customerByName START");
-        ResultSet rs = customerByName.executeQuery();
+        ResultSet rs = executeQuery(customerByName, customerByNameSQL);
         if (trace) LOG.trace("customerByName END");
 
         while (rs.next()) {

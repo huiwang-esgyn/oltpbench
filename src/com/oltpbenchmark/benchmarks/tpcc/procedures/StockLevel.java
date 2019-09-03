@@ -74,7 +74,7 @@ public class StockLevel extends TPCCProcedure {
 	     stockGetDistOrderId.setInt(1, w_id);
          stockGetDistOrderId.setInt(2, d_id);
          if (trace) LOG.trace(String.format("stockGetDistOrderId BEGIN [W_ID=%d, D_ID=%d]", w_id, d_id));
-         ResultSet rs = stockGetDistOrderId.executeQuery();
+         ResultSet rs = executeQuery(stockGetDistOrderId, stockGetDistOrderIdSQL);
          if (trace) LOG.trace("stockGetDistOrderId END");
 
          if (!rs.next()) {
@@ -90,7 +90,7 @@ public class StockLevel extends TPCCProcedure {
          stockGetCountStock.setInt(5, w_id);
          stockGetCountStock.setInt(6, threshold);
          if (trace) LOG.trace(String.format("stockGetCountStock BEGIN [W_ID=%d, D_ID=%d, O_ID=%d]", w_id, d_id, o_id));
-         rs = stockGetCountStock.executeQuery();
+         rs = executeQuery(stockGetCountStock, stockGetCountStockSQL);
          if (trace) LOG.trace("stockGetCountStock END");
 
          if (!rs.next()) {

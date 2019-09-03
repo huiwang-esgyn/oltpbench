@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import com.oltpbenchmark.types.DatabaseType;
 import org.apache.log4j.Logger;
 
 import com.oltpbenchmark.api.Loader;
@@ -51,6 +52,8 @@ import com.oltpbenchmark.benchmarks.tpcc.pojo.*;
 import com.oltpbenchmark.benchmarks.tpcc.TPCCConfig;
 import com.oltpbenchmark.catalog.Table;
 import com.oltpbenchmark.util.SQLUtil;
+
+import static com.oltpbenchmark.types.DatabaseType.ESGYNDB;
 
 /**
  * TPC-C Benchmark Loader
@@ -128,7 +131,12 @@ public class TPCCLoader extends Loader<TPCCBenchmark> {
     private PreparedStatement getInsertStatement(Connection conn, String tableName) throws SQLException {
         Table catalog_tbl = this.benchmark.getTableCatalog(tableName);
         assert(catalog_tbl != null);
-        String sql = SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType());
+		DatabaseType dbtype = this.getDatabaseType();
+        String sql;
+        if (dbtype == ESGYNDB)
+            sql = SQLUtil.getUpsertSQL(catalog_tbl, this.getDatabaseType());
+        else
+            sql = SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType());
         PreparedStatement stmt = conn.prepareStatement(sql);
         return stmt;
     }
