@@ -277,7 +277,7 @@ public class TPCCLoader extends Loader<TPCCBenchmark> {
 			warehouse.w_street_1 = TPCCUtil.randomStr(TPCCUtil.randomNumber(10, 20, benchmark.rng()));
 			warehouse.w_street_2 = TPCCUtil.randomStr(TPCCUtil.randomNumber(10, 20, benchmark.rng()));
 			warehouse.w_city = TPCCUtil.randomStr(TPCCUtil.randomNumber(10, 20, benchmark.rng()));
-			warehouse.w_state = TPCCUtil.randomStr(3).toUpperCase(); 
+			warehouse.w_state = TPCCUtil.randomStr(3).toUpperCase();
 			warehouse.w_zip = "123456789";
 
 			int idx = 1;
@@ -688,7 +688,7 @@ public class TPCCLoader extends Loader<TPCCBenchmark> {
 							    newOrderBatch = 0;
 							}
 							orlnPrepStmt.executeBatch();
-							
+
 							ordrPrepStmt.clearBatch();
 							nworPrepStmt.clearBatch();
 							orlnPrepStmt.clearBatch();
