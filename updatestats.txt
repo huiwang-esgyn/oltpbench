@@ -1,0 +1,9 @@
+update statistics for table tpcc.CUSTOMER on every column;
+update statistics for table tpcc.DISTRICT on every column;
+update statistics for table tpcc.HISTORY on every column;
+update statistics for table tpcc.ITEM on every column;
+update statistics for table tpcc.NEW_ORDER on every column;
+update statistics for table tpcc.OORDER on every column;
+update statistics for table tpcc.ORDER_LINE on every column;
+update statistics for table tpcc.STOCK on every column;
+update statistics for table tpcc.WAREHOUSE on every column;

@@ -117,8 +117,6 @@ public class TPCCLoader extends Loader<TPCCBenchmark> {
                     // ORDERS
                     loadOrders(conn, w_id, TPCCConfig.configDistPerWhse, TPCCConfig.configCustPerDist);
 
-                    // update stats
-					updateStats(conn);
 				}
             };
             threads.add(t);
@@ -238,29 +236,6 @@ public class TPCCLoader extends Loader<TPCCBenchmark> {
         return (k);
 
     } // end loadItem()
-
-	private void updateStats(Connection conn) {
-		DatabaseType dbtype = this.getDatabaseType();
-		if (dbtype == ESGYNDB) {
-			try {
-				Statement s = conn.createStatement();
-				s.execute("update statistics for table tpcc.CUSTOMER on every column");
-				s.execute("update statistics for table tpcc.DISTRICT on every column");
-				s.execute("update statistics for table tpcc.HISTORY on every column");
-				s.execute("update statistics for table tpcc.ITEM on every column");
-				s.execute("update statistics for table tpcc.NEW_ORDER on every column");
-				s.execute("update statistics for table tpcc.OORDER on every column");
-				s.execute("update statistics for table tpcc.ORDER_LINE on every column");
-				s.execute("update statistics for table tpcc.STOCK on every column");
-				s.execute("update statistics for table tpcc.WAREHOUSE on every column");
-				s.close();
-			} catch (SQLException se) {
-				LOG.debug(se.getMessage());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
 
     protected int loadWarehouse(Connection conn, int w_id) {
 
