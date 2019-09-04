@@ -22,6 +22,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Random;
 
+import com.oltpbenchmark.types.DatabaseType;
 import org.apache.log4j.Logger;
 
 import com.oltpbenchmark.api.SQLStmt;
@@ -88,6 +89,15 @@ public class NewOrder extends TPCCProcedure {
 	        " WHERE S_I_ID = ? " +
             "   AND S_W_ID = ?");
 
+	public final SQLStmt  stmtUpdateStockEsgynSQL = new SQLStmt(
+			"UPDATE USING UPSERT " + TPCCConstants.TABLENAME_STOCK +
+					"   SET S_QUANTITY = ? , " +
+					"       S_YTD = S_YTD + ?, " +
+					"       S_ORDER_CNT = S_ORDER_CNT + 1, " +
+					"       S_REMOTE_CNT = S_REMOTE_CNT + ? " +
+					" WHERE S_I_ID = ? " +
+					"   AND S_W_ID = ?");
+
 	public final SQLStmt  stmtInsertOrderLineSQL = new SQLStmt(
 	        "INSERT INTO " + TPCCConstants.TABLENAME_ORDERLINE + 
 	        " (OL_O_ID, OL_D_ID, OL_W_ID, OL_NUMBER, OL_I_ID, OL_SUPPLY_W_ID, OL_QUANTITY, OL_AMOUNT, OL_DIST_INFO) " +
@@ -124,6 +134,8 @@ public class NewOrder extends TPCCProcedure {
 		stmtGetItem =this.getPreparedStatement(conn, stmtGetItemSQL);
 		stmtGetStock =this.getPreparedStatement(conn, stmtGetStockSQL);
 		stmtUpdateStock =this.getPreparedStatement(conn, stmtUpdateStockSQL);
+		if (this.getDatabaseType() == DatabaseType.ESGYNDB)
+			stmtUpdateStock = this.getPreparedStatement(conn, stmtUpdateStockEsgynSQL);
 		stmtInsertOrderLine =this.getPreparedStatement(conn, stmtInsertOrderLineSQL);
 
 
@@ -389,7 +401,10 @@ public class NewOrder extends TPCCProcedure {
 			} // end-for
 
 			executeBatch(stmtInsertOrderLine, stmtInsertOrderLineSQL);
-			executeBatch(stmtUpdateStock, stmtUpdateStockSQL);
+			if (this.getDatabaseType() == DatabaseType.ESGYNDB)
+				executeBatch(stmtUpdateStock, stmtUpdateStockEsgynSQL);
+			else
+				executeBatch(stmtUpdateStock, stmtUpdateStockSQL);
 
 			total_amount *= (1 + w_tax + d_tax) * (1 - c_discount);
 		} catch(UserAbortException userEx)

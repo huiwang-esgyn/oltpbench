@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Random;
 
+import com.oltpbenchmark.types.DatabaseType;
 import org.apache.log4j.Logger;
 
 import com.oltpbenchmark.api.SQLStmt;
@@ -67,7 +68,14 @@ public class Delivery extends TPCCProcedure {
 			" WHERE OL_O_ID = ? " +
 			"   AND OL_D_ID = ? " +
 			"   AND OL_W_ID = ? ");
-	
+
+    public SQLStmt delivUpdateDeliveryDateEsgynSQL = new SQLStmt(
+            "UPDATE USING UPSERT " + TPCCConstants.TABLENAME_ORDERLINE +
+                    "   SET OL_DELIVERY_D = ? " +
+                    " WHERE OL_O_ID = ? " +
+                    "   AND OL_D_ID = ? " +
+                    "   AND OL_W_ID = ? ");
+
 	public SQLStmt delivSumOrderAmountSQL = new SQLStmt(
 	        "SELECT SUM(OL_AMOUNT) AS OL_TOTAL " +
 			"  FROM " + TPCCConstants.TABLENAME_ORDERLINE + 
@@ -108,6 +116,8 @@ public class Delivery extends TPCCProcedure {
 		delivGetCustId = this.getPreparedStatement(conn, delivGetCustIdSQL);
 		delivUpdateCarrierId = this.getPreparedStatement(conn, delivUpdateCarrierIdSQL);
 		delivUpdateDeliveryDate = this.getPreparedStatement(conn, delivUpdateDeliveryDateSQL);
+		if (this.getDatabaseType() == DatabaseType.ESGYNDB)
+            delivUpdateDeliveryDate = this.getPreparedStatement(conn, delivUpdateDeliveryDateEsgynSQL);
 		delivSumOrderAmount = this.getPreparedStatement(conn, delivSumOrderAmountSQL);
 		delivUpdateCustBalDelivCnt = this.getPreparedStatement(conn, delivUpdateCustBalDelivCntSQL);
 
@@ -188,7 +198,10 @@ public class Delivery extends TPCCProcedure {
             delivUpdateDeliveryDate.setInt(3, d_id);
             delivUpdateDeliveryDate.setInt(4, w_id);
             if (trace) LOG.trace("delivUpdateDeliveryDate START");
-            result = executeUpdate(delivUpdateDeliveryDate, delivUpdateDeliveryDateSQL);
+            if (this.getDatabaseType() == DatabaseType.ESGYNDB)
+                result = executeUpdate(delivUpdateDeliveryDate, delivUpdateDeliveryDateEsgynSQL);
+            else
+                result = executeUpdate(delivUpdateDeliveryDate, delivUpdateDeliveryDateSQL);
             if (trace) LOG.trace("delivUpdateDeliveryDate END");
 
             if (result == 0){
